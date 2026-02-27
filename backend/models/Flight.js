@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const flightSchema = new mongoose.Schema({
   flightNumber: { type: String, unique: true, required: true },
