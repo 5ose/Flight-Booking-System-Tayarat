@@ -2,6 +2,7 @@
 import { loginUser, registerUser, verifyEmail } from "../controllers/userController.js";
 import authMiddleware from "../middleware/auth.js";
 import express from "express";
+import userModel from "../models/User.js";
 
 const router = express.Router();
 
