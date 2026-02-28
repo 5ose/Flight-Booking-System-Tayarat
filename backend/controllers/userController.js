@@ -2,6 +2,7 @@ import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../models/User.js";
+import sendVerificationEmail from "../utils/sendVerificationEmail.js";
 
 const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -50,7 +51,7 @@ const registerUser = async (req, res) => {
     if (!validator.isEmail(email)) {
       return res.status(400).json({ success: false, message: "Please enter a valid email" });
     }
-    
+
     if (password.length < 8) {
       return res.status(400).json({ success: false, message: "Password must be at least 8 characters long" });
     }
@@ -62,6 +63,8 @@ const registerUser = async (req, res) => {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
+    await sendVerificationEmail(email, verificationCode);
+
     const newUser = new userModel({
       name,
       email,
@@ -71,9 +74,6 @@ const registerUser = async (req, res) => {
     });
 
     const user = await newUser.save();
-
-    // TODO: Send verification email here
-    // await sendVerificationEmail(email, verificationCode);
 
     res.status(201).json({ 
       success: true, 
@@ -91,7 +91,7 @@ const verifyEmail = async (req, res) => {
   try {
     const { email, verificationCode } = req.body;
 
-    const user = await userModel.findOne({ email });
+    const user = await userModel.findOne({ email: email.trim() });
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -101,22 +101,32 @@ const verifyEmail = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email already verified" });
     }
 
-    if (user.verificationCode !== verificationCode) {
-      return res.status(400).json({ success: false, message: "Invalid verification code" });
+    if (!user.verificationCode || !user.verificationCodeExpires) {
+      return res.status(400).json({ success: false, message: "No verification code found" });
     }
 
     if (new Date() > user.verificationCodeExpires) {
       return res.status(400).json({ success: false, message: "Verification code expired" });
     }
 
+    if (user.verificationCode !== verificationCode.trim()) {
+      return res.status(400).json({ success: false, message: "Invalid verification code" });
+    }
+
     user.isVerified = true;
     user.verificationCode = undefined;
     user.verificationCodeExpires = undefined;
+
     await user.save();
 
     const token = createToken(user._id);
 
-    res.json({ success: true, token, message: "Email verified successfully" });
+    res.json({
+      success: true,
+      token,
+      message: "Email verified successfully",
+    });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
