@@ -4,7 +4,8 @@ import {
   getAllFlights,
   getFlightById,
   updateFlight,
-  deleteFlight
+  deleteFlight,
+  searchFlights
 } from "../controllers/flightController.js";
 
 const router = express.Router();
