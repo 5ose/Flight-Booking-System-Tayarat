@@ -6,6 +6,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import User from "./models/User.js"; // remove in production, only for testing purposes
+import flightRoutes from "./routes/flightRoutes.js";
 
 
 const app = express();
@@ -19,7 +20,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/users", userRoutes);
-
+app.use("/api/flights", flightRoutes);
 
 
 // --- CRUD Routes --- // remove in production, only for testing purposes
