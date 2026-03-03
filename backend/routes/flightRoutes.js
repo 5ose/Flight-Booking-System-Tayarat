@@ -10,6 +10,7 @@ import {
 const router = express.Router();
 
 router.post("/", createFlight);
+router.get("/search", searchFlights);
 router.get("/", getAllFlights);
 router.get("/:id", getFlightById);
 router.put("/:id", updateFlight);
