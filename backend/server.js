@@ -6,6 +6,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import flightRoutes from "./routes/flightRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 // import User from "./models/User.js"; // remove in production, only for testing purposes
 
 
@@ -21,6 +22,8 @@ app.use(express.json());
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/flights", flightRoutes);
+app.use("/api/bookings", bookingRoutes);
+
 
 
 
@@ -28,6 +31,46 @@ app.use("/api/flights", flightRoutes);
 app.get("/", (req, res) => {
   res.send("Tayarat API is running...");
 });
+
+
+app.get("/", (req, res) => {
+  res.send("Flight Booking API is running...");
+});
+
+
+app.get("/test-db", async (req, res) => {
+  try {
+    const user = await User.create({
+      name: "Test User",
+      email: "test@test.com",
+      password: "hashedpassword"
+    });
+
+    const flight = await Flight.create({
+      flightNumber: "FL123",
+      from: "Cairo",
+      to: "Dubai",
+      date: new Date("2026-03-01T10:00:00"),
+      totalSeats: 150,
+      availableSeats: 150,
+      price: 500
+    });
+
+    const booking = await Booking.create({
+      user: user._id,
+      flight: flight._id,
+      numberOfSeats: 2,
+      totalPrice: 1000
+    });
+
+    res.json({ user, flight, booking });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
@@ -99,3 +142,4 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 //     res.status(500).json({ message: "Server Error" });
 //   }
 // });
+
